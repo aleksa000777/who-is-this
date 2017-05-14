@@ -34,7 +34,6 @@ export default class WhoIsThis extends Component {
   getMoviesFromApiAsync () {
     let url = this.state.text
     console.log('url', url);
-    // let url = "http://hairstyles.thehairstyler.com/hairstyle_views/front_view_images/5258/original/Angelina-Jolie.jpg";
     fetch("http://localhost:3000/" + url, {method: "GET"})
           .then((response) => response.json())
           .then((response) => {
