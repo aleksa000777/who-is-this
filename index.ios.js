@@ -12,6 +12,7 @@ import {
   View,
   Button,
   Alert,
+  TextInput,
 } from 'react-native';
 
 
@@ -21,7 +22,7 @@ export default class WhoIsThis extends Component {
     super(props);
     this.state = {
       result: {},
-      text: 'hello'
+      text: ''
     };
     this.onButtonPress = this.onButtonPress.bind(this)
   }
@@ -31,8 +32,9 @@ export default class WhoIsThis extends Component {
   }
 
   getMoviesFromApiAsync () {
-    console.log('i was called');
-    let url = "http://hairstyles.thehairstyler.com/hairstyle_views/front_view_images/5258/original/Angelina-Jolie.jpg";
+    let url = this.state.text
+    console.log('url', url);
+    // let url = "http://hairstyles.thehairstyler.com/hairstyle_views/front_view_images/5258/original/Angelina-Jolie.jpg";
     fetch("http://localhost:3000/" + url, {method: "GET"})
           .then((response) => response.json())
           .then((response) => {
@@ -50,6 +52,11 @@ export default class WhoIsThis extends Component {
         <Text style={styles.welcome}>
           {this.state.result.length > 0 ? this.state.result: 'hello'}
         </Text>
+        <TextInput
+          style={{height: 40, borderColor: 'gray', borderWidth: 1}}
+          onChangeText={(text) => this.setState({text})}
+          value={this.state.text}
+        />
         <Button
           onPress={this.onButtonPress}
           title="Learn More"
