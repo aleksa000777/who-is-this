@@ -86,7 +86,7 @@ export default class WhoIsThis extends React.Component {
   getMoviesFromApiAsync () {
     let url = 'http://www.celebritybeliefs.com/wp-content/uploads/2016/07/matt-damon-religion-hobbies-political-views.jpg'
     console.log('url', url);
-    fetch("http://localhost:3000/" + url, {method: "GET"})
+    fetch("https://calm-savannah-34510.herokuapp.com/" + url, {method: "GET"})
           .then((response) => response.json())
           .then((response) => {
             console.log('success on front!!!');
