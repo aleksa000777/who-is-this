@@ -6,6 +6,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  Modal,
+  Text
 } from 'react-native';
 import Camera from 'react-native-camera';
 
@@ -70,8 +72,13 @@ export default class WhoIsThis extends React.Component {
         flashMode: Camera.constants.FlashMode.auto,
       },
       isRecording: false,
-      result: {}
+      result: {},
+      modalVisible: false
     };
+  }
+
+  setModalVisible = (visible) => {
+    this.setState({modalVisible: visible});
   }
 
   takePicture = () => {
@@ -91,7 +98,9 @@ export default class WhoIsThis extends React.Component {
           .then((response) => {
             console.log('success on front!!!');
             console.log(response.result.name);
-            this.setState({result : response.result.name});
+            this.setState({result : response.result.name}, () => {
+              this.setModalVisible(!this.state.modalVisible)
+            });
           }).done()
   }
 
@@ -184,61 +193,62 @@ export default class WhoIsThis extends React.Component {
   render() {
     console.log('this.state', this.state.result);
     return (
-      <View style={styles.container}>
-        <StatusBar
-          animated
-          hidden
-        />
-        <Camera
-          ref={(cam) => {
-            this.camera = cam;
-          }}
-          style={styles.preview}
-          aspect={this.state.camera.aspect}
-          captureTarget={this.state.camera.captureTarget}
-          type={this.state.camera.type}
-          flashMode={this.state.camera.flashMode}
-          onFocusChanged={() => {}}
-          onZoomChanged={() => {}}
-          defaultTouchToFocus
-          mirrorImage={false}
-        />
-        <View style={[styles.overlay, styles.topOverlay]}>
-          <TouchableOpacity
-            style={styles.typeButton}
-            onPress={this.switchType}
-          >
-            <Image
-              source={this.typeIcon}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.flashButton}
-            onPress={this.switchFlash}
-          >
-            <Image
-              source={this.flashIcon}
-            />
-          </TouchableOpacity>
-        </View>
-        <View style={[styles.overlay, styles.bottomOverlay]}>
-          {
-            !this.state.isRecording
-            &&
+        <View style={styles.container}>
+          <StatusBar
+            animated
+            hidden
+          />
+          <Camera
+            ref={(cam) => {
+              this.camera = cam;
+            }}
+            style={styles.preview}
+            aspect={this.state.camera.aspect}
+            captureTarget={this.state.camera.captureTarget}
+            type={this.state.camera.type}
+            flashMode={this.state.camera.flashMode}
+            onFocusChanged={() => {}}
+            onZoomChanged={() => {}}
+            defaultTouchToFocus
+            mirrorImage={false}
+          />
+          <View style={[styles.overlay, styles.topOverlay]}>
             <TouchableOpacity
-                style={styles.captureButton}
-                onPress={this.takePicture}
+              style={styles.typeButton}
+              onPress={this.switchType}
             >
               <Image
-                  source={require('./assets/ic_camera_front_white.png')}
+                source={this.typeIcon}
               />
             </TouchableOpacity>
-            ||
-            null
-          }
-          <View style={styles.buttonsSpace} />
+            <TouchableOpacity
+              style={styles.flashButton}
+              onPress={this.switchFlash}
+            >
+              <Image
+                source={this.flashIcon}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={[styles.overlay, styles.bottomOverlay]}>
+            {
+              !this.state.isRecording
+              &&
+              <TouchableOpacity
+                  style={styles.captureButton}
+                  onPress={this.takePicture}
+              >
+                <Image
+                    source={require('./assets/ic_camera_front_white.png')}
+                />
+              </TouchableOpacity>
+              ||
+              null
+            }
+            <View style={styles.buttonsSpace} />
+          </View>
+          <Text>{this.state.result.length > 0 ? this.state.result : ''}</Text>
         </View>
-      </View>
     );
   }
 }
