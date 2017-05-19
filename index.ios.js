@@ -11,6 +11,11 @@ import {
 } from 'react-native';
 import Camera from 'react-native-camera';
 
+if(typeof global.self === "undefined")
+{
+    global.self = global;
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -84,7 +89,7 @@ export default class WhoIsThis extends React.Component {
   takePicture = () => {
     if (this.camera) {
       this.camera.capture()
-        .then((data) => console.log(data))
+        .then((data) => console.log('picture',data))
         .then(this.getMoviesFromApiAsync())
         .catch(err => console.error(err));
     }

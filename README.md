@@ -17,3 +17,12 @@
 ```
 
 - `react-native link react-native-camera`
+
+*** to run on device
+settings -> general -> device managment -> trust app
+on xcode -> preferences -> login to your accaunt
+libraries -> RCTWebSocket.xcodeproj -> RCTWebSocketExecutor -> find 'localhost'
+change to your computer IP
+```NSInteger port = [[[_bridge bundleURL] port] integerValue] ?: '/';
+    NSString *host = [[_bridge bundleURL] host] ?: @"xxx.xxx.xx.xxx";
+    ```
