@@ -1,3 +1,5 @@
+react-native run-ios
+
  - if on react-native < 0.40: `npm i react-native-camera@0.4`
  - if on react-native >= 0.40 `npm i react-native-camera@0.6`
 

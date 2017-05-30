@@ -1,4 +1,4 @@
 {
-  "presets": ["react-native", "es2015"],
+  "presets": ["react-native", "babel-preset-stage-3", "es2017"],
   "plugins": ["transform-class-properties"]
 }

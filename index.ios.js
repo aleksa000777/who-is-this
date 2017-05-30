@@ -11,56 +11,14 @@ import {
 } from 'react-native';
 import Camera from 'react-native-camera';
 
+const xhr = new XMLHttpRequest();
+const port = 'http://localhost:3000/' || 'https://calm-savannah-34510.herokuapp.com/'
+
+
 if(typeof global.self === "undefined")
 {
     global.self = global;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  preview: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  overlay: {
-    position: 'absolute',
-    padding: 16,
-    right: 0,
-    left: 0,
-    alignItems: 'center',
-  },
-  topOverlay: {
-    top: 0,
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  bottomOverlay: {
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  captureButton: {
-    padding: 15,
-    backgroundColor: 'white',
-    borderRadius: 40,
-  },
-  typeButton: {
-    padding: 5,
-  },
-  flashButton: {
-    padding: 5,
-  },
-  buttonsSpace: {
-    width: 10,
-  },
-});
 
 export default class WhoIsThis extends React.Component {
   constructor(props) {
@@ -71,14 +29,15 @@ export default class WhoIsThis extends React.Component {
     this.state = {
       camera: {
         aspect: Camera.constants.Aspect.fill,
-        captureTarget: Camera.constants.CaptureTarget.cameraRoll,
+        captureTarget: Camera.constants.CaptureTarget.disk,
         type: Camera.constants.Type.back,
         orientation: Camera.constants.Orientation.auto,
         flashMode: Camera.constants.FlashMode.auto,
       },
       isRecording: false,
       result: {},
-      modalVisible: false
+      modalVisible: false,
+      path: ''
     };
   }
 
@@ -89,16 +48,19 @@ export default class WhoIsThis extends React.Component {
   takePicture = () => {
     if (this.camera) {
       this.camera.capture()
-        .then((data) => console.log('picture',data))
-        .then(this.getMoviesFromApiAsync())
+        .then((data) => this.setState({path : data.path}, () => {
+          this.uploadImage()
+        }))
+        // .then(this.getMoviesFromApiAsync())
         .catch(err => console.error(err));
     }
   }
 
+
   getMoviesFromApiAsync () {
     let url = 'http://www.celebritybeliefs.com/wp-content/uploads/2016/07/matt-damon-religion-hobbies-political-views.jpg'
     console.log('url', url);
-    fetch("https://calm-savannah-34510.herokuapp.com/" + url, {method: "GET"})
+    fetch(port + url, {method: "GET"})
           .then((response) => response.json())
           .then((response) => {
             console.log('success on front!!!');
@@ -109,25 +71,6 @@ export default class WhoIsThis extends React.Component {
           }).done()
   }
 
-  startRecording = () => {
-    if (this.camera) {
-      this.camera.capture({mode: Camera.constants.CaptureMode.video})
-          .then((data) => console.log(data))
-          .catch(err => console.error(err));
-      this.setState({
-        isRecording: true
-      });
-    }
-  }
-
-  stopRecording = () => {
-    if (this.camera) {
-      this.camera.stopCapture();
-      this.setState({
-        isRecording: false
-      });
-    }
-  }
 
   switchType = () => {
     let newType;
@@ -195,6 +138,35 @@ export default class WhoIsThis extends React.Component {
     return icon;
   }
 
+  // image upload
+  uploadImage = () => {
+    const photo = {
+      uri: this.state.path,
+      type: 'image/jpeg',
+      name: 'photo.jpg',
+    };
+    const postData = new FormData();
+    postData.append('authToken', 'secret');
+    postData.append('photo', photo);
+    postData.append('title', 'A beautiful photo!');
+
+    fetch(port, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: postData
+    }).then((response) => response.json())
+      .then((response) => {
+        console.log('success on front!!!');
+        console.log(response);
+        this.setState({result : response.name})
+      }).catch(function(err) {
+        console.log("error", err);
+    });
+  }
+
+
   render() {
     console.log('this.state', this.state.result);
     return (
@@ -259,3 +231,49 @@ export default class WhoIsThis extends React.Component {
 }
 
 AppRegistry.registerComponent('WhoIsThis', () => WhoIsThis);
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  preview: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  overlay: {
+    position: 'absolute',
+    padding: 16,
+    right: 0,
+    left: 0,
+    alignItems: 'center',
+  },
+  topOverlay: {
+    top: 0,
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  bottomOverlay: {
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  captureButton: {
+    padding: 15,
+    backgroundColor: 'white',
+    borderRadius: 40,
+  },
+  typeButton: {
+    padding: 5,
+  },
+  flashButton: {
+    padding: 5,
+  },
+  buttonsSpace: {
+    width: 10,
+  },
+});
