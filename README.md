@@ -30,7 +30,14 @@ change to your computer IP
     NSString *host = [[_bridge bundleURL] host] ?: @"xxx.xxx.xx.xxx";
     ```
 
+for localhost
+``` NSInteger port = [[[_bridge bundleURL] port] integerValue] ?: 8081;
+    NSString *host = [[_bridge bundleURL] host] ?: @"localhost";```
+
 
 
 lsof -i :8081
 kill -9 <PID>
+clean cache `rm -rf $TMPDIR/react*`
+
+debugger will run on http://localhost:8081/debugger-ui

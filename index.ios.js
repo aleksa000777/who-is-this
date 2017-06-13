@@ -7,12 +7,19 @@ import {
   TouchableOpacity,
   View,
   Modal,
-  Text
+  Text,
+  NativeModules
 } from 'react-native';
 import Camera from 'react-native-camera';
-
+var RNFS = require('react-native-fs');
 const xhr = new XMLHttpRequest();
-const port = 'http://localhost:3000/' || 'https://calm-savannah-34510.herokuapp.com/'
+const uri = 'https://calm-savannah-34510.herokuapp.com/'
+
+// your IP for local server testing
+// const url = 'http://xx.xx.x.xx'
+// const port = 3000
+// const uri = `${url}:${port}/`
+
 
 
 if(typeof global.self === "undefined")
@@ -51,26 +58,9 @@ export default class WhoIsThis extends React.Component {
         .then((data) => this.setState({path : data.path}, () => {
           this.uploadImage()
         }))
-        // .then(this.getMoviesFromApiAsync())
         .catch(err => console.error(err));
     }
   }
-
-
-  getMoviesFromApiAsync () {
-    let url = 'http://www.celebritybeliefs.com/wp-content/uploads/2016/07/matt-damon-religion-hobbies-political-views.jpg'
-    console.log('url', url);
-    fetch(port + url, {method: "GET"})
-          .then((response) => response.json())
-          .then((response) => {
-            console.log('success on front!!!');
-            console.log(response.result.name);
-            this.setState({result : response.result.name}, () => {
-              this.setModalVisible(!this.state.modalVisible)
-            });
-          }).done()
-  }
-
 
   switchType = () => {
     let newType;
@@ -139,36 +129,29 @@ export default class WhoIsThis extends React.Component {
   }
 
   // image upload
-  uploadImage = () => {
-    const photo = {
-      uri: this.state.path,
-      type: 'image/jpeg',
-      name: 'photo.jpg',
-    };
-    const postData = new FormData();
-    postData.append('authToken', 'secret');
-    postData.append('photo', photo);
-    postData.append('title', 'A beautiful photo!');
-
-    fetch(port, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: postData
-    }).then((response) => response.json())
+  async uploadImage() {
+    let base64image = await RNFS.readFile(this.state.path, 'base64');
+    let formData = new FormData();
+    formData.append("csv", base64image);
+    fetch(uri,
+      {
+          method: "POST",
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': "multipart/form-data",
+          },
+          body: formData
+      })
+      .then((response) => response.json())
       .then((response) => {
-        console.log('success on front!!!');
-        console.log(response);
-        this.setState({result : response.name})
-      }).catch(function(err) {
-        console.log("error", err);
-    });
+            console.log(response);
+            this.setState({result : response.result.name})
+          }).catch(function(err) {
+            console.log("error", err);
+        });
   }
 
-
   render() {
-    console.log('this.state', this.state.result);
     return (
         <View style={styles.container}>
           <StatusBar
