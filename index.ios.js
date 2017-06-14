@@ -11,6 +11,8 @@ import {
 import Camera from 'react-native-camera';
 const RNFS = require('react-native-fs');
 const xhr = new XMLHttpRequest();
+
+// server running on heroku
 const uri = 'https://calm-savannah-34510.herokuapp.com/'
 
 // your IP for local server testing
@@ -101,11 +103,18 @@ export default class WhoIsThis extends React.Component {
       })
       .then((response) => response.json())
       .then((response) => {
-            console.log(response);
-            this.setState({result : response.result.name})
+            this.formattedResult(response.result)
           }).catch(function(err) {
             console.log("error", err);
         });
+  }
+
+  formattedResult = (response) => {
+    let result = "";
+    for (var i = 0; i < response.length; i++){
+      result+= response[i].data.face.identity.concepts[0].name + " | "
+    }
+    this.setState({result : result})
   }
 
   render() {
