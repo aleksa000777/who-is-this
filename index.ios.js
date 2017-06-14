@@ -9,7 +9,7 @@ import {
   Text
 } from 'react-native';
 import Camera from 'react-native-camera';
-var RNFS = require('react-native-fs');
+const RNFS = require('react-native-fs');
 const xhr = new XMLHttpRequest();
 const uri = 'https://calm-savannah-34510.herokuapp.com/'
 
@@ -17,8 +17,6 @@ const uri = 'https://calm-savannah-34510.herokuapp.com/'
 // const url = 'http://xx.xx.x.xx'
 // const port = 3000
 // const uri = `${url}:${port}/`
-
-
 
 if(typeof global.self === "undefined")
 {
@@ -55,6 +53,7 @@ export default class WhoIsThis extends React.Component {
     }
   }
 
+// front or back camera
   switchType = () => {
     let newType;
     const { back, front } = Camera.constants.Type;
@@ -80,41 +79,6 @@ export default class WhoIsThis extends React.Component {
     if (this.state.camera.type === back) {
       icon = require('./assets/ic_camera_front_white.png');
     } else if (this.state.camera.type === front) {
-      icon = require('./assets/ic_camera_front_white.png');
-    }
-
-    return icon;
-  }
-
-  switchFlash = () => {
-    let newFlashMode;
-    const { auto, on, off } = Camera.constants.FlashMode;
-
-    if (this.state.camera.flashMode === auto) {
-      newFlashMode = on;
-    } else if (this.state.camera.flashMode === on) {
-      newFlashMode = off;
-    } else if (this.state.camera.flashMode === off) {
-      newFlashMode = auto;
-    }
-
-    this.setState({
-      camera: {
-        ...this.state.camera,
-        flashMode: newFlashMode,
-      },
-    });
-  }
-
-  get flashIcon() {
-    let icon;
-    const { auto, on, off } = Camera.constants.FlashMode;
-
-    if (this.state.camera.flashMode === auto) {
-      icon = require('./assets/ic_camera_front_white.png');
-    } else if (this.state.camera.flashMode === on) {
-      icon = require('./assets/ic_camera_front_white.png');
-    } else if (this.state.camera.flashMode === off) {
       icon = require('./assets/ic_camera_front_white.png');
     }
 
@@ -178,26 +142,17 @@ export default class WhoIsThis extends React.Component {
               style={styles.flashButton}
               onPress={this.switchFlash}
             >
-              <Image
-                source={this.flashIcon}
-              />
             </TouchableOpacity>
           </View>
           <View style={[styles.overlay, styles.bottomOverlay]}>
-            {
-              !this.state.isRecording
-              &&
-              <TouchableOpacity
-                  style={styles.captureButton}
-                  onPress={this.takePicture}
-              >
-                <Image
-                    source={require('./assets/ic_camera_front_white.png')}
-                />
-              </TouchableOpacity>
-              ||
-              null
-            }
+            <TouchableOpacity
+                style={styles.captureButton}
+                onPress={this.takePicture}
+            >
+              <Image
+                  source={require('./assets/ic_camera_front_white.png')}
+              />
+            </TouchableOpacity>
             <View style={styles.buttonsSpace} />
           </View>
           <Text>{this.state.result.length > 0 ? this.state.result : ''}</Text>
