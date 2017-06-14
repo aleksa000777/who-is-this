@@ -6,9 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
-  Modal,
-  Text,
-  NativeModules
+  Text
 } from 'react-native';
 import Camera from 'react-native-camera';
 var RNFS = require('react-native-fs');
@@ -43,13 +41,8 @@ export default class WhoIsThis extends React.Component {
       },
       isRecording: false,
       result: {},
-      modalVisible: false,
       path: ''
     };
-  }
-
-  setModalVisible = (visible) => {
-    this.setState({modalVisible: visible});
   }
 
   takePicture = () => {
