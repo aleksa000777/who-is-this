@@ -26,6 +26,10 @@ if(typeof global.self === "undefined")
     global.self = global;
 }
 
+String.prototype.capitalize = function() {
+  return this.replace(/(?:^|\s)\S/g, function(a) { return a.toUpperCase(); });
+};
+
 export default class WhoIsThis extends React.Component {
   constructor(props) {
     super(props);
@@ -92,7 +96,6 @@ export default class WhoIsThis extends React.Component {
       })
       .then((response) => response.json())
       .then((response) => {
-        console.log("response.result", !!response.result);
           if(!!response.result){
             this.formattedResult(response.result, apiV)
           } else {
@@ -107,7 +110,8 @@ export default class WhoIsThis extends React.Component {
     if(apiV === "celebrity"){
       let name = "";
       for (var i = 0; i < response.length; i++){
-        name+= response[i].data.face.identity.concepts[0].name + "\n"
+        let val = (response[i].data.face.identity.concepts[0].value * 100).toFixed(2)
+        name+= val+"%: " + response[i].data.face.identity.concepts[0].name.capitalize() + "\n"
       }
       const result = this.state.result;
       result.name = name;
@@ -131,7 +135,6 @@ export default class WhoIsThis extends React.Component {
 
   render() {
     let resultUI = null;
-    console.log('this.state.', this.state);
     if(this.state.result.name){
       resultUI = this.state.result.name
       if(this.state.result.age){
