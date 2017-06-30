@@ -66,21 +66,22 @@ export default class WhoIsThis extends React.Component {
         // let source = { uri: 'data:image/jpeg;base64,' + response.data };
         const result = this.state.result;
         result.name = "Loading ...";
+        result.age = null;
+        result.gender = null;
+        result.race = null;
         this.setState({
           avatar: source,
           result,
         }, () => {
-          this.uploadImage();
+          let apiV = "celebrity";
+          this.uploadImage(apiV);
         });
       }
     });
   }
 
   // image upload
-  async uploadImage() {
-    // if back camera use celebrity API : front - demograthica
-    // let apiV = this.state.camera.type === Camera.constants.Type.back ? "celebrity" : "demographics"
-    let apiV = "celebrity"
+  async uploadImage(apiV) {
     let base64image = await RNFS.readFile(this.state.avatar.uri, 'base64');
     let formData = new FormData();
     formData.append("csv", base64image);
@@ -95,7 +96,12 @@ export default class WhoIsThis extends React.Component {
       })
       .then((response) => response.json())
       .then((response) => {
-            response.result ? this.formattedResult(response.result, apiV) : this.setState({result: {...this.state.result, name: null,},});
+        console.log("response.result", !!response.result);
+          if(!!response.result){
+            this.formattedResult(response.result, apiV)
+          } else {
+            this.setState({result: {...this.state.result, name: null,},});
+          }
           }).catch(function(err) {
             console.log("error", err);
         });
@@ -112,6 +118,10 @@ export default class WhoIsThis extends React.Component {
       this.setState({
           result,
       });
+      if(response.length == 1){
+        let apiV = "demographics";
+        this.uploadImage(apiV);
+      }
     } else {
       const result = this.state.result;
       result.age = response[0].data.face.age_appearance.concepts[0].name;
@@ -125,11 +135,13 @@ export default class WhoIsThis extends React.Component {
 
   render() {
     let resultUI = null;
-    if(this.state.result.name || this.state.result.age){
-      if(this.state.result.name){
-        resultUI = this.state.result.name
-      } else {
-        resultUI = 'Age: '+ this.state.result.age + '\n'
+    console.log('this.state.', this.state);
+    if(this.state.result.name){
+      resultUI = this.state.result.name
+      if(this.state.result.age){
+        resultUI =
+        this.state.result.name + '\n'
+        + 'Age: '+ this.state.result.age + '\n'
          + 'Gender: ' + this.state.result.gender + '\n'
          +'Race: ' + this.state.result.race
       }
