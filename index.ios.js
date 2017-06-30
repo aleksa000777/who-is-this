@@ -9,7 +9,6 @@ import {
   PixelRatio,
   Text
 } from 'react-native';
-import Camera from 'react-native-camera';
 import ImagePicker from 'react-native-image-picker';
 const RNFS = require('react-native-fs');
 const xhr = new XMLHttpRequest();
@@ -31,9 +30,6 @@ export default class WhoIsThis extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      camera: {
-        type: Camera.constants.Type.back
-      },
       result: {},
       avatar: null
     };
