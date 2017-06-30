@@ -2,15 +2,15 @@ import React from 'react';
 import {
   AppRegistry,
   Image,
-  StatusBar,
   StyleSheet,
   TouchableOpacity,
   View,
   Dimensions,
+  PixelRatio,
   Text
 } from 'react-native';
-import Modal from 'react-native-modal'
 import Camera from 'react-native-camera';
+import ImagePicker from 'react-native-image-picker';
 const RNFS = require('react-native-fs');
 const xhr = new XMLHttpRequest();
 
@@ -30,76 +30,58 @@ if(typeof global.self === "undefined")
 export default class WhoIsThis extends React.Component {
   constructor(props) {
     super(props);
-
-    this.camera = null;
-
     this.state = {
       camera: {
-        aspect: Camera.constants.Aspect.fill,
-        captureTarget: Camera.constants.CaptureTarget.disk,
-        type: Camera.constants.Type.back,
-        orientation: Camera.constants.Orientation.auto,
-        flashMode: Camera.constants.FlashMode.auto,
+        type: Camera.constants.Type.back
       },
-      isRecording: false,
       result: {},
-      path: '',
-      isModalVisible: false
+      avatar: null
     };
   }
 
-  takePicture = () => {
-    if (this.camera) {
-      this.camera.capture()
-        .then((data) => this.setState({
-            path : data.path,
-            result: {}
-          }, () => {
-          this.uploadImage()
-        }))
-        .catch(err => console.error(err));
-    }
-  }
+  selectPhotoTapped() {
+    const options = {
+      quality: 1.0,
+      maxWidth: 500,
+      maxHeight: 500,
+      storageOptions: {
+        skipBackup: true
+      }
+    };
+    ImagePicker.showImagePicker(options, (response) => {
+      console.log('Response = ', response);
 
-  _hideModal = () => this.setState({ isModalVisible: false })
-
-// front or back camera
-  switchType = () => {
-    let newType;
-    const { back, front } = Camera.constants.Type;
-
-    if (this.state.camera.type === back) {
-      newType = front;
-    } else if (this.state.camera.type === front) {
-      newType = back;
-    }
-
-    this.setState({
-      camera: {
-        ...this.state.camera,
-        type: newType,
-      },
+      if (response.didCancel) {
+        console.log('User cancelled photo picker');
+      }
+      else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      }
+      else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+      }
+      else {
+        let source = { uri: response.uri };
+        // You can also display the image using data:
+        // let source = { uri: 'data:image/jpeg;base64,' + response.data };
+        const result = this.state.result;
+        result.name = "Loading ...";
+        this.setState({
+          avatar: source,
+          result,
+        }, () => {
+          this.uploadImage();
+        });
+      }
     });
-  }
-
-  get typeIcon() {
-    let icon;
-    const { back, front } = Camera.constants.Type;
-
-    if (this.state.camera.type === back) {
-      icon = require('./assets/ic_camera_front_white.png');
-    } else if (this.state.camera.type === front) {
-      icon = require('./assets/ic_camera_front_white.png');
-    }
-
-    return icon;
   }
 
   // image upload
   async uploadImage() {
     // if back camera use celebrity API : front - demograthica
-    let apiV = this.state.camera.type === Camera.constants.Type.back ? "celebrity" : "demographics"
-    let base64image = await RNFS.readFile(this.state.path, 'base64');
+    // let apiV = this.state.camera.type === Camera.constants.Type.back ? "celebrity" : "demographics"
+    let apiV = "celebrity"
+    let base64image = await RNFS.readFile(this.state.avatar.uri, 'base64');
     let formData = new FormData();
     formData.append("csv", base64image);
     fetch(uri + '?v=' + apiV,
@@ -113,8 +95,7 @@ export default class WhoIsThis extends React.Component {
       })
       .then((response) => response.json())
       .then((response) => {
-            this.setState({isModalVisible: true})
-            this.formattedResult(response.result, apiV)
+            response.result ? this.formattedResult(response.result, apiV) : this.setState({result: {...this.state.result, name: null,},});
           }).catch(function(err) {
             console.log("error", err);
         });
@@ -143,58 +124,29 @@ export default class WhoIsThis extends React.Component {
   }
 
   render() {
+    let resultUI = null;
+    if(this.state.result.name || this.state.result.age){
+      if(this.state.result.name){
+        resultUI = this.state.result.name
+      } else {
+        resultUI = 'Age: '+ this.state.result.age + '\n'
+         + 'Gender: ' + this.state.result.gender + '\n'
+         +'Race: ' + this.state.result.race
+      }
+    } else {
+      resultUI = "Try again"
+    }
+
     return (
       <View style={styles.container}>
-        <StatusBar
-          animated
-          hidden
-        />
-        <Camera
-          ref={(cam) => {
-            this.camera = cam;
-          }}
-          style={styles.preview}
-          aspect={this.state.camera.aspect}
-          captureTarget={this.state.camera.captureTarget}
-          type={this.state.camera.type}
-          flashMode={this.state.camera.flashMode}
-          onFocusChanged={() => {}}
-          onZoomChanged={() => {}}
-          defaultTouchToFocus
-          mirrorImage={false}
-        />
-        <View style={[styles.overlay, styles.topOverlay]}>
-          <TouchableOpacity
-            style={styles.typeButton}
-            onPress={this.switchType}
-          >
-            <Image
-              source={this.typeIcon}
-            />
-          </TouchableOpacity>
-        </View>
-        <View>
-          <Modal isVisible={this.state.isModalVisible}>
-            <View style={styles.modal}>
-              <TouchableOpacity onPress={this._hideModal} style={styles.hideModal}>
-                <Text>{this.state.result &&
-                  this.state.result.name ? this.state.result.name : 'Age:'+ this.state.result.age + '\n' + 'Gender:' + this.state.result.gender + '\n' +'Race:' + this.state.result.race
-                }</Text>
-              </TouchableOpacity>
-            </View>
-          </Modal>
-        </View>
-        <View style={[styles.overlay, styles.bottomOverlay]}>
-          <TouchableOpacity
-              style={styles.captureButton}
-              onPress={this.takePicture}
-          >
-            <Image
-                source={require('./assets/ic_camera_front_white.png')}
-            />
-          </TouchableOpacity>
-          <View style={styles.buttonsSpace} />
-        </View>
+        <TouchableOpacity onPress={this.selectPhotoTapped.bind(this)}>
+          <View style={[styles.avatar, styles.avatarContainer, {marginBottom: 20}]}>
+            { this.state.avatar === null ? <Text>Select a Photo</Text> :
+              <Image style={styles.avatar} source={this.state.avatar} />
+            }
+          </View>
+       </TouchableOpacity>
+       <Text>{resultUI}</Text>
       </View>
     );
   }
@@ -203,68 +155,23 @@ export default class WhoIsThis extends React.Component {
 AppRegistry.registerComponent('WhoIsThis', () => WhoIsThis);
 var windowSize = Dimensions.get('window');
 const styles = StyleSheet.create({
+
+  avatarContainer: {
+    borderColor: '#9B9B9B',
+    borderWidth: 1 / PixelRatio.get(),
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  avatar: {
+    borderRadius: 75,
+    width: windowSize.width - 4,
+    height: windowSize.width - 4
+  },
+
   container: {
     flex: 1,
-  },
-  modal: {
-    position: 'absolute',
-    top: windowSize.height/4,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: windowSize.height/3,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.9)',
-  },
-  hideModal: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.9)',
-  },
-  preview: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  overlay: {
-    position: 'absolute',
-    padding: 16,
-    right: 0,
-    left: 0,
-    alignItems: 'center',
-  },
-  topOverlay: {
-    top: 0,
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  bottomOverlay: {
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  captureButton: {
-    padding: 15,
-    backgroundColor: 'white',
-    borderRadius: 40,
-  },
-  typeButton: {
-    padding: 5,
-  },
-  flashButton: {
-    padding: 5,
-  },
-  buttonsSpace: {
-    width: 10,
-  },
+    backgroundColor: '#F5FCFF'
+  }
 });
