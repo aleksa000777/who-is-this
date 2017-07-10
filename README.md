@@ -41,3 +41,6 @@ kill -9 <PID>
 clean cache `rm -rf $TMPDIR/react*`
 
 debugger will run on http://localhost:8081/debugger-ui
+
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/aleksa000777/who-is-this.svg)](https://greenkeeper.io/)
